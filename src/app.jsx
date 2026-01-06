@@ -3,6 +3,8 @@ import './styles/global.css'
 import './styles/form.css'
 import './styles/dialog.css'
 import './styles/mobile.css'
+import './styles/camera.css'
+
 
 import database from './modules/database'
 import scanner from './modules/camera'
@@ -413,3 +415,4 @@ function App() {
 }
 
 export default App
+
