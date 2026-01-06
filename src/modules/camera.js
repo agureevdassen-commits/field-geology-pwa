@@ -1,206 +1,147 @@
-/**
- * Модуль сканирования штрихкодов
- * Работает на 10 FPS для экономии батареи
- */
-
-import { BrowserMultiFormatReader } from '@zxing/browser'
+import { BrowserMultiFormatReader, NotFoundException } from '@zxing/browser'
 
 class BarcodeScanner {
   constructor() {
-    this.codeReader = null
-    this.scanning = false
-    this.lastScannedBarcode = ''
-    this.scanInterval = 100  // 10 FPS
-    this.scanTimestamp = 0
-    this.videoElement = null
-    this.stream = null
-    this.canvasElement = null
-    this.animationFrameId = null
+    this.codeReader = new BrowserMultiFormatReader()
+    this.isScanning = false
+    this.scanningInterval = null
   }
 
-  /**
-   * Запустить сканирование
-   */
-  async startScanning(videoElement, onDetected) {
+  // Запросить разрешение на доступ к камере
+  async requestCameraPermission() {
     try {
-      console.log('[CAMERA] 📸 Инициализация камеры (10 FPS)...')
-
-      // Запросить доступ к камере
+      console.log('[CAMERA] 📷 Запрашиваю разрешение на камеру...')
+      
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: 'environment',
+          facingMode: 'environment', // Задняя камера на телефоне
           width: { ideal: 1280 },
           height: { ideal: 720 }
         },
         audio: false
       })
 
-      // Установить видеопоток
-      videoElement.srcObject = stream
-      this.videoElement = videoElement
-      this.stream = stream
-      this.scanning = true
-      this.codeReader = new BrowserMultiFormatReader()
-
-      console.log('[CAMERA] ✅ Камера инициализирована, начинаем сканирование')
-
-      // Запустить цикл сканирования
-      this.scanFrames(videoElement, onDetected)
-
+      console.log('[CAMERA] ✅ Разрешение на камеру получено!')
+      
+      // Закрыть поток (нужен только для проверки разрешения)
+      stream.getTracks().forEach(track => track.stop())
+      
+      return true
     } catch (error) {
-      console.error('[CAMERA] ❌ Ошибка доступа к камере:', error)
-      throw error
+      console.error('[CAMERA] ❌ Ошибка разрешения:', error.message)
+      
+      if (error.name === 'NotAllowedError') {
+        console.warn('[CAMERA] ⚠️ Пользователь запретил доступ к камере')
+      } else if (error.name === 'NotFoundError') {
+        console.warn('[CAMERA] ⚠️ Камера не найдена')
+      }
+      
+      return false
     }
   }
 
-  /**
-   * Цикл сканирования (10 FPS)
-   */
-  async scanFrames(videoElement, onDetected) {
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')
-
-    const scan = async () => {
-      // Если сканирование остановлено, не продолжать
-      if (!this.scanning) {
-        return
+  // Начать сканирование
+  async startScanning(videoElement, onBarcodeDetected) {
+    try {
+      if (!videoElement) {
+        console.error('[CAMERA] ❌ Видео элемент не найден!')
+        return false
       }
 
-      const now = Date.now()
-
-      // КЛЮЧЕВАЯ ОПТИМИЗАЦИЯ: сканировать только каждые 100ms (10 FPS)
-      if (now - this.scanTimestamp < this.scanInterval) {
-        // Пропустить этот кадр
-        this.animationFrameId = requestAnimationFrame(scan)
-        return
+      // Проверить разрешение
+      const hasPermission = await this.requestCameraPermission()
+      if (!hasPermission) {
+        console.error('[CAMERA] ❌ Нет разрешения на камеру')
+        return false
       }
 
-      // Обновить timestamp
-      this.scanTimestamp = now
+      console.log('[CAMERA] 🎬 Начинаю сканирование...')
 
-      try {
-        // Получить размеры видео
-        const videoWidth = videoElement.videoWidth
-        const videoHeight = videoElement.videoHeight
-
-        // Рисовать видео на canvas
-        canvas.width = videoWidth
-        canvas.height = videoHeight
-
-        if (canvas.width > 0 && canvas.height > 0) {
-          ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height)
-
-          try {
-            // Попытаться декодировать штрихкод
-            const result = await this.codeReader.decodeFromCanvas(canvas)
-
-            if (result && result.text) {
-              // Проверка на дубли (дебаунс)
-              if (result.text !== this.lastScannedBarcode) {
-                this.lastScannedBarcode = result.text
-
-                console.log('[BARCODE] ✅ Распознан:', result.text)
-
-                // КРИТИЧЕСКИ ВАЖНО: ОТКЛЮЧИТЬ КАМЕРУ СРАЗУ!
-                this.stopScanning()
-
-                // Вызвать callback
-                if (onDetected) {
-                  onDetected(result.text)
-                }
-
-                // Дебаунс
-                setTimeout(() => {
-                  this.lastScannedBarcode = ''
-                }, 1000)
-              }
+      // Декодировать поток
+      this.codeReader.decodeFromVideoDevice(
+        null, // Выбрать устройство по умолчанию
+        videoElement,
+        (result, error) => {
+          if (result) {
+            const barcode = result.getText()
+            console.log('[CAMERA] ✅ Найден штрихкод:', barcode)
+            
+            if (onBarcodeDetected) {
+              onBarcodeDetected(barcode)
             }
-          } catch (error) {
-            // Штрихкод не найден - это нормально
+            
+            // Остановить и перезагрузить для следующего сканирования
+            this.restartScanning(videoElement, onBarcodeDetected)
+          }
+
+          if (error && !(error instanceof NotFoundException)) {
+            console.warn('[CAMERA] ⚠️ Ошибка декодирования:', error.message)
           }
         }
+      )
 
-        // Продолжить сканирование
-        this.animationFrameId = requestAnimationFrame(scan)
-
-      } catch (error) {
-        console.error('[SCAN] Ошибка:', error)
-        this.animationFrameId = requestAnimationFrame(scan)
-      }
+      this.isScanning = true
+      console.log('[CAMERA] ✅ Сканирование активно')
+      return true
+    } catch (error) {
+      console.error('[CAMERA] ❌ Ошибка при запуске сканирования:', error)
+      return false
     }
-
-    // Запустить цикл
-    scan()
   }
 
-  /**
-   * Остановить сканирование
-   */
+  // Перезагрузить сканирование
+  async restartScanning(videoElement, onBarcodeDetected) {
+    try {
+      this.stopScanning()
+      
+      // Подождать 500ms перед перезагрузкой
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      await this.startScanning(videoElement, onBarcodeDetected)
+    } catch (error) {
+      console.error('[CAMERA] ❌ Ошибка при перезагрузке:', error)
+    }
+  }
+
+  // Остановить сканирование
   stopScanning() {
-    if (!this.scanning) return
-
-    console.log('[CAMERA] 🛑 Остановка сканирования...')
-    this.scanning = false
-
-    // Отменить animation frame
-    if (this.animationFrameId) {
-      cancelAnimationFrame(this.animationFrameId)
-    }
-
-    // Остановить все видеотреки (экономит батарею!)
-    if (this.stream) {
-      this.stream.getTracks().forEach(track => {
-        console.log('[CAMERA] Остановка трека:', track.kind)
-        track.stop()
-      })
-      this.stream = null
-    }
-
-    // Очистить видеоэлемент
-    if (this.videoElement) {
-      this.videoElement.srcObject = null
-    }
-
-    console.log('[CAMERA] ✅ Камера отключена (батарея экономится)')
-  }
-
-  /**
-   * Перезагрузить камеру
-   */
-  async restartScanning(videoElement, onDetected) {
-    console.log('[CAMERA] 🔄 Перезагрузка камеры...')
-
-    // Остановить текущее
-    this.stopScanning()
-
-    // Пауза перед перезагрузкой
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    // Запустить заново
-    await this.startScanning(videoElement, onDetected)
-
-    console.log('[CAMERA] ✅ Камера перезагружена')
-  }
-
-  /**
-   * Ручной ввод штрихкода (для тестирования)
-   */
-  enableManualInput(inputElement, onDetected) {
-    inputElement.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        const barcode = e.target.value.trim()
-        if (barcode) {
-          console.log('[MANUAL] Введен штрихкод:', barcode)
-          this.stopScanning()
-          if (onDetected) {
-            onDetected(barcode)
-          }
-          e.target.value = ''
-        }
+    try {
+      if (this.codeReader) {
+        this.codeReader.reset()
       }
-    })
+      this.isScanning = false
+      console.log('[CAMERA] ⏹️ Сканирование остановлено')
+    } catch (error) {
+      console.error('[CAMERA] ❌ Ошибка при остановке:', error)
+    }
+  }
+
+  // Получить список доступных устройств
+  async getDevices() {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices()
+      const videoDevices = devices.filter(device => device.kind === 'videoinput')
+      console.log('[CAMERA] 📹 Доступные камеры:', videoDevices)
+      return videoDevices
+    } catch (error) {
+      console.error('[CAMERA] ❌ Ошибка при получении устройств:', error)
+      return []
+    }
+  }
+
+  // Проверить доступность камеры
+  async isCameraAvailable() {
+    try {
+      const devices = await this.getDevices()
+      return devices.length > 0
+    } catch (error) {
+      console.error('[CAMERA] ❌ Ошибка при проверке камеры:', error)
+      return false
+    }
   }
 }
 
-// Экспортировать singleton
-export default new BarcodeScanner()
+// Экспортировать синглтон
+const BarcodeScanner_instance = new BarcodeScanner()
+
+export default BarcodeScanner_instance
