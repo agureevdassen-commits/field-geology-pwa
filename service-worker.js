@@ -1,94 +1,91 @@
-const CACHE_NAME = 'geology-v2.0';
+// Service Worker для PWA
+const CACHE_NAME = 'field-geology-pwa-v1'
 const urlsToCache = [
   '/',
   '/index.html',
-  '/manifest.json'
-];
+  '/manifest.webmanifest'
+]
 
 // Установка Service Worker
 self.addEventListener('install', (event) => {
+  console.log('[SW] 🔧 Установка Service Worker...')
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('[SW] Кэширование основных ресурсов');
-        return cache.addAll(urlsToCache);
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('[SW] ✅ Кэш открыт')
+      return cache.addAll(urlsToCache).catch((error) => {
+        console.warn('[SW] ⚠️ Ошибка кэширования:', error)
       })
-      .then(() => {
-        console.log('[SW] ✅ Service Worker установлен');
-        self.skipWaiting();
-      })
-      .catch((error) => {
-        console.error('[SW] ❌ Ошибка установки:', error);
-      })
-  );
-});
+    })
+  )
+})
 
 // Активация Service Worker
 self.addEventListener('activate', (event) => {
+  console.log('[SW] ✅ Service Worker активирован')
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('[SW] Удаление старого кэша:', cacheName);
-            return caches.delete(cacheName);
+            console.log('[SW] 🗑️ Удаление старого кэша:', cacheName)
+            return caches.delete(cacheName)
           }
         })
-      );
-    }).then(() => {
-      console.log('[SW] ✅ Service Worker активирован');
-      return self.clients.claim();
+      )
     })
-  );
-});
+  )
+})
 
-// Fetch обработка (Network First)
+// Перехват запросов
 self.addEventListener('fetch', (event) => {
-  // Пропустить non-GET запросы
+  // Только GET запросы
   if (event.request.method !== 'GET') {
-    return;
+    return
   }
 
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // Кэшировать успешные ответы
-        if (response.ok) {
-          const cache = caches.open(CACHE_NAME);
-          cache.then((c) => c.put(event.request, response.clone()));
-        }
-        return response;
-      })
-      .catch(() => {
-        // Если нет интернета, вернуть из кэша
-        return caches.match(event.request)
-          .then((cachedResponse) => {
-            if (cachedResponse) {
-              return cachedResponse;
-            }
-            // Если нет в кэше, вернуть оффлайн страницу
-            if (event.request.destination === 'document') {
-              return caches.match('/index.html');
-            }
-          });
-      })
-  );
-});
+    caches.match(event.request).then((response) => {
+      // Если в кэше - вернуть из кэша
+      if (response) {
+        console.log('[SW] 📦 Из кэша:', event.request.url)
+        return response
+      }
 
-// Фоновая синхронизация (для будущих версий)
+      // Иначе - загрузить с сервера
+      return fetch(event.request)
+        .then((response) => {
+          // Не кэшировать если not ok
+          if (!response || response.status !== 200 || response.type === 'error') {
+            return response
+          }
+
+          // Клонировать и кэшировать
+          const responseToCache = response.clone()
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache)
+          })
+
+          return response
+        })
+        .catch((error) => {
+          console.error('[SW] ❌ Fetch ошибка:', error)
+          // Вернуть из кэша если сеть недоступна
+          return caches.match(event.request)
+        })
+    })
+  )
+})
+
+// Синхронизация в фоне (для данных)
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-records') {
-    event.waitUntil(
-      (async () => {
-        try {
-          console.log('[SW] Синхронизация записей...');
-          // Реализовать в версии 3.0
-        } catch (error) {
-          console.error('[SW] Ошибка синхронизации:', error);
-        }
-      })()
-    );
+  console.log('[SW] 🔄 Background Sync:', event.tag)
+  if (event.tag === 'sync-geology-data') {
+    event.waitUntil(syncData())
   }
-});
+})
 
-console.log('[SW] Service Worker загружен');
+// Функция синхронизации (пустая заглушка)
+async function syncData() {
+  console.log('[SW] 📤 Синхронизация данных...')
+  return Promise.resolve()
+}
