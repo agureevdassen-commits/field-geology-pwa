@@ -1,0 +1,47 @@
+/* Контейнер камеры */
+.camera-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 0 20px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Видеопоток камеры */
+.camera-stream {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Заглушка когда камера недоступна */
+.camera-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+
+/* На телефоне */
+@media (max-width: 768px) {
+  .camera-container {
+    aspect-ratio: 16 / 9;
+    margin-bottom: 15px;
+  }
+
+  .camera-stream {
+    transform: scaleX(-1); /* Зеркало спереди на фронт-камере */
+  }
+}
