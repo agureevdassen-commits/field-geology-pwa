@@ -1,4 +1,4 @@
-import { BrowserMultiFormatReader, NotFoundException } from '@zxing/browser'
+import { BrowserMultiFormatReader} from '@zxing/browser'
 
 class BarcodeScanner {
   constructor() {
@@ -74,7 +74,7 @@ class BarcodeScanner {
             this.restartScanning(videoElement, onBarcodeDetected)
           }
 
-          if (error && !(error instanceof NotFoundException)) {
+         if (error && error.message !== 'No MultiFormat Readers were able to detect the code') {
             console.warn('[CAMERA] ⚠️ Ошибка декодирования:', error.message)
           }
         }
@@ -145,3 +145,4 @@ class BarcodeScanner {
 const BarcodeScanner_instance = new BarcodeScanner()
 
 export default BarcodeScanner_instance
+
