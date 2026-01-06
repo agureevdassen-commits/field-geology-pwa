@@ -3,292 +3,340 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#ffffff">
-    <meta name="description" content="PWA для сбора геологических данных">
-    <title>Field Geology PWA</title>
-    <link rel="manifest" href="/manifest.json">
+    <meta name="description" content="PWA для сбора геологических данных с камерой и офлайн базой">
+    <meta name="theme-color" content="#2180B8">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <title>Field Geology Data Collector v2.0</title>
+    
     <style>
+        :root {
+            --color-primary: #2180B8;
+            --color-primary-hover: #1a6a99;
+            --color-success: #4CAF50;
+            --color-error: #FF5757;
+            --color-warning: #FFA726;
+            --color-bg: #f5f5f5;
+            --color-surface: #ffffff;
+            --color-text: #333333;
+            --color-text-light: #666666;
+            --color-border: #e0e0e0;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        html {
+            font-size: 16px;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
-            color: #333;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
         }
 
         .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: var(--color-bg);
         }
 
         header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
             color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            padding: 1.5rem 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
 
         header h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
         }
 
         .camera-section {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        #video {
             width: 100%;
-            max-width: 100%;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            background: #000;
+            margin-bottom: 2rem;
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            aspect-ratio: 16 / 9;
+        }
+
+        .camera-stream {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             display: block;
+            background: #000;
         }
 
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        button {
-            flex: 1;
-            min-width: 120px;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-
-        .btn-secondary {
-            background: #e8e8e8;
-            color: #333;
-        }
-
-        .btn-secondary:hover {
-            background: #d8d8d8;
-        }
-
-        .btn-danger {
-            background: #ff6b6b;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #ee5a52;
-        }
-
-        .btn-success {
-            background: #51cf66;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #40c057;
-        }
-
-        .form-section {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        .form {
+            background: var(--color-surface);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 1.5rem;
         }
 
         label {
             display: block;
-            margin-bottom: 5px;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 0.95rem;
+            color: var(--color-text);
+            margin-bottom: 0.5rem;
         }
 
-        input, textarea, select {
+        .form-input,
+        .form-select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-family: inherit;
-            font-size: 14px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background: var(--color-surface);
+            color: var(--color-text);
+            transition: all 0.2s ease;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
-        input:focus, textarea:focus, select:focus {
+        .form-input:focus,
+        .form-select:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(33, 128, 184, 0.1);
         }
 
-        textarea {
-            resize: vertical;
-            min-height: 100px;
+        .form-select {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem;
         }
 
-        .qr-result {
-            background: #f0f9ff;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            display: none;
+        .record-count {
+            background: linear-gradient(135deg, rgba(33, 128, 184, 0.1), rgba(76, 175, 80, 0.1));
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--color-primary);
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            text-align: center;
         }
 
-        .qr-result.show {
-            display: block;
+        .record-count strong {
+            color: var(--color-primary);
+            font-size: 1.3rem;
         }
 
-        .qr-result h3 {
-            color: #667eea;
-            margin-bottom: 8px;
-            font-size: 14px;
+        .error-message,
+        .success-message {
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+            font-weight: 500;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
 
-        .qr-result p {
-            color: #333;
-            margin: 5px 0;
-            font-size: 14px;
-            word-break: break-all;
+        .error-message {
+            background-color: rgba(255, 87, 87, 0.1);
+            color: var(--color-error);
+            border-left: 4px solid var(--color-error);
         }
 
-        .records-section {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        .success-message {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: var(--color-success);
+            border-left: 4px solid var(--color-success);
         }
 
-        .records-section h2 {
-            font-size: 18px;
-            margin-bottom: 15px;
-            color: #333;
+        .buttons-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
         }
 
-        .record-item {
-            background: #f9f9f9;
-            border: 1px solid #eee;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 10px;
+        .btn {
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .record-item h4 {
-            color: #667eea;
-            margin-bottom: 8px;
-            font-size: 14px;
+        .btn:active {
+            transform: scale(0.98);
         }
 
-        .record-item p {
-            color: #666;
-            font-size: 13px;
-            margin: 3px 0;
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 6px;
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
             color: white;
-            font-size: 14px;
-            animation: slideIn 0.3s ease;
+            grid-column: 1 / -1;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(33, 128, 184, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #9E9E9E;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #757575;
+        }
+
+        .btn-warning {
+            background-color: var(--color-warning);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--color-error);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #E63946;
+        }
+
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             z-index: 1000;
-            max-width: 300px;
+            animation: fadeIn 0.2s ease;
+            backdrop-filter: blur(2px);
         }
 
-        .toast.success {
-            background: #51cf66;
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
-        .toast.error {
-            background: #ff6b6b;
+        .dialog {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            max-width: 400px;
+            min-width: 280px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s ease;
         }
 
-        .toast.info {
-            background: #667eea;
-        }
-
-        @keyframes slideIn {
+        @keyframes slideUp {
             from {
-                transform: translateX(400px);
                 opacity: 0;
+                transform: translateY(20px);
             }
             to {
-                transform: translateX(0);
                 opacity: 1;
+                transform: translateY(0);
             }
         }
 
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
+        .dialog h2 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.3rem;
+            color: var(--color-text);
+            font-weight: 600;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .dialog p {
+            margin: 0 0 1.5rem 0;
+            color: var(--color-text-light);
+            font-size: 0.95rem;
+            line-height: 1.4;
         }
 
-        .block-info {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            color: #856404;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            font-size: 14px;
+        .dialog-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
         }
 
-        @media (max-width: 600px) {
+        .dialog-buttons .btn {
+            flex: 1;
+            min-height: 44px;
+        }
+
+        footer {
+            background: var(--color-surface);
+            border-top: 1px solid var(--color-border);
+            padding: 1rem;
+            text-align: center;
+            color: var(--color-text-light);
+            font-size: 0.9rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 480px) {
             header h1 {
-                font-size: 20px;
+                font-size: 1.5rem;
             }
 
-            button {
-                min-width: 100px;
-                padding: 10px 15px;
-                font-size: 13px;
+            main {
+                padding: 1rem;
             }
 
-            .button-group {
-                gap: 8px;
+            .buttons-group {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-primary {
+                grid-column: 1;
+            }
+
+            .dialog {
+                max-width: 90vw;
+                padding: 1.5rem;
+            }
+
+            .dialog-buttons {
+                flex-direction: column;
             }
         }
     </style>
@@ -296,348 +344,528 @@
 <body>
     <div class="container">
         <header>
-            <h1>🌍 Field Geology PWA</h1>
-            <p>Сбор геологических данных с QR кодами</p>
+            <h1>🔬 Сбор геологических данных</h1>
         </header>
 
-        <!-- Камера -->
-        <div class="camera-section">
-            <h2 style="margin-bottom: 15px;">📷 Камера</h2>
-            <video id="video" autoplay playsinline></video>
-            
-            <div class="button-group">
-                <button class="btn-primary" id="startCamera">🎥 Включить камеру</button>
-                <button class="btn-danger" id="stopCamera">⏹️ Выключить</button>
-                <button class="btn-secondary" id="capturePhoto">📸 Снимок</button>
+        <main>
+            <div class="camera-section">
+                <video id="camera-video" autoplay playsinline muted class="camera-stream"></video>
             </div>
 
-            <div id="qrResult" class="qr-result">
-                <h3>✅ QR код распознан!</h3>
-                <p><strong>Код:</strong> <span id="qrText"></span></p>
+            <form id="data-form" class="form">
+                <div class="form-group">
+                    <label for="barcode-input">Штрихкод:</label>
+                    <input id="barcode-input" type="text" placeholder="Сканируйте штрихкод" readonly class="form-input"/>
+                </div>
+
+                <div class="form-group">
+                    <label for="well-input">Скважина:</label>
+                    <input id="well-input" type="tel" placeholder="Номер скважины" inputmode="numeric" pattern="[0-9]*" class="form-input"/>
+                </div>
+
+                <div class="form-group">
+                    <label for="block-input">Блок:</label>
+                    <input id="block-input" type="tel" placeholder="Номер блока" inputmode="numeric" pattern="[0-9]*" class="form-input"/>
+                </div>
+
+                <div class="form-group">
+                    <label for="rock-select">Порода:</label>
+                    <select id="rock-select" class="form-select">
+                        <option value="520">520</option>
+                        <option value="360">360</option>
+                        <option value="100">100</option>
+                        <option value="200">200</option>
+                        <option value="300">300</option>
+                        <option value="400">400</option>
+                        <option value="500">500</option>
+                        <option value="600">600</option>
+                        <option value="700">700</option>
+                        <option value="800">800</option>
+                    </select>
+                </div>
+
+                <div class="record-count">
+                    Записей в БД: <strong id="record-count">0</strong>
+                </div>
+
+                <div id="error-message" class="error-message" style="display: none;"></div>
+                <div id="success-message" class="success-message" style="display: none;"></div>
+
+                <div class="buttons-group">
+                    <button type="submit" class="btn btn-primary" title="Сохранить запись">
+                        💾 Сохранить запись
+                    </button>
+                    <button type="button" id="export-btn" class="btn btn-secondary" title="Экспортировать в CSV">
+                        📥 Экспорт
+                    </button>
+                    <button type="button" id="share-btn" class="btn btn-warning" title="Поделиться файлом">
+                        📤 Поделиться
+                    </button>
+                    <button type="button" id="clear-btn" class="btn btn-danger" title="Очистить поля">
+                        🗑️ Очистить
+                    </button>
+                </div>
+            </form>
+        </main>
+
+        <div id="confirm-dialog" class="dialog-overlay" style="display: none;">
+            <div class="dialog">
+                <h2>Очистить поля?</h2>
+                <p>Данные в форме будут потеряны (кроме блока)</p>
+                <div class="dialog-buttons">
+                    <button type="button" id="cancel-btn" class="btn btn-secondary">Отмена</button>
+                    <button type="button" id="confirm-btn" class="btn btn-danger">Очистить</button>
+                </div>
             </div>
         </div>
 
-        <!-- Форма ввода -->
-        <div class="form-section">
-            <h2 style="margin-bottom: 15px;">📝 Данные</h2>
-            
-            <div class="block-info">
-                ID Блока: <strong id="blockId">-</strong>
-                <button class="btn-secondary" id="changeBlock" style="width: auto; margin-left: 10px; padding: 5px 10px; font-size: 12px;">Изменить</button>
-            </div>
-
-            <div class="form-group">
-                <label>Глубина (м)</label>
-                <input type="number" id="depth" placeholder="0.0" step="0.1">
-            </div>
-
-            <div class="form-group">
-                <label>Координаты (широта, долгота)</label>
-                <input type="text" id="coordinates" placeholder="55.7558, 37.6173">
-            </div>
-
-            <div class="form-group">
-                <label>Описание</label>
-                <textarea id="description" placeholder="Опишите найденный образец..."></textarea>
-            </div>
-
-            <div class="form-group">
-                <label>Тип пород</label>
-                <select id="rockType">
-                    <option value="">-- Выберите тип --</option>
-                    <option value="igneous">Магматические</option>
-                    <option value="sedimentary">Осадочные</option>
-                    <option value="metamorphic">Метаморфные</option>
-                    <option value="other">Другое</option>
-                </select>
-            </div>
-
-            <div class="button-group">
-                <button class="btn-success" id="saveRecord">✅ Сохранить запись</button>
-                <button class="btn-secondary" id="clearForm">🗑️ Очистить</button>
-            </div>
-        </div>
-
-        <!-- Сохраненные записи -->
-        <div class="records-section">
-            <h2>📊 Сохраненные записи (<span id="recordCount">0</span>)</h2>
-            <div id="recordsList"></div>
-            
-            <div class="button-group" style="margin-top: 15px;">
-                <button class="btn-primary" id="exportCSV">💾 Скачать CSV</button>
-                <button class="btn-secondary" id="shareData">📤 Поделиться</button>
-                <button class="btn-danger" id="clearAll">🗑️ Очистить все</button>
-            </div>
-        </div>
+        <footer>
+            v2.0 | Без интернета ✅ | Данные сохранены локально
+        </footer>
     </div>
 
-    <script>
-        // ============ ИНИЦИАЛИЗАЦИЯ ============
-        const App = {
-            db: null,
-            camera: null,
-            currentBlockId: localStorage.getItem('blockId') || '123123',
-            stream: null,
+    <script src="https://unpkg.com/@zxing/browser@0.1.5/esm/index.min.js"></script>
 
-            // Инициализация IndexedDB
-            async initDB() {
+    <script>
+        class GeologyDatabase {
+            constructor() {
+                this.db = null;
+                this.dbName = 'FieldGeologyDB';
+                this.storeName = 'geology_records';
+                this.version = 1;
+            }
+
+            async init() {
                 return new Promise((resolve, reject) => {
-                    const request = indexedDB.open('GeologyDB', 1);
-                    
+                    const request = indexedDB.open(this.dbName, this.version);
                     request.onerror = () => reject(request.error);
                     request.onsuccess = () => {
                         this.db = request.result;
                         console.log('[DB] ✅ БД инициализирована');
-                        resolve();
+                        resolve(this.db);
                     };
-                    
-                    request.onupgradeneeded = (e) => {
-                        const db = e.target.result;
-                        if (!db.objectStoreNames.contains('records')) {
-                            db.createObjectStore('records', { keyPath: 'id', autoIncrement: true });
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains(this.storeName)) {
+                            const store = db.createObjectStore(this.storeName, {
+                                keyPath: 'id',
+                                autoIncrement: true
+                            });
+                            store.createIndex('by_timestamp', 'timestamp', { unique: false });
+                            store.createIndex('by_barcode', 'barcode', { unique: false });
+                            store.createIndex('by_block', 'block', { unique: false });
                         }
                     };
                 });
-            },
+            }
 
-            // Сохранить запись
-            async saveRecord(record) {
+            async addRecord(barcode, well, block, rockCode) {
+                if (!this.db) await this.init();
+                const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+                const record = {
+                    timestamp,
+                    barcode,
+                    well: parseInt(well, 10),
+                    block: parseInt(block, 10),
+                    rockCode,
+                    createdAt: new Date().toISOString()
+                };
+
                 return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction(['records'], 'readwrite');
-                    const store = tx.objectStore('records');
-                    const request = store.add({
-                        ...record,
-                        timestamp: new Date().toISOString(),
-                        blockId: this.currentBlockId
-                    });
-
-                    request.onsuccess = () => resolve(request.result);
+                    const tx = this.db.transaction([this.storeName], 'readwrite');
+                    const store = tx.objectStore(this.storeName);
+                    const request = store.add(record);
                     request.onerror = () => reject(request.error);
+                    request.onsuccess = () => {
+                        console.log('[DB] ✅ Запись добавлена:', record);
+                        resolve(request.result);
+                    };
                 });
-            },
+            }
 
-            // Получить все записи
-            async getRecords() {
+            async getAllRecords() {
+                if (!this.db) await this.init();
                 return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction(['records'], 'readonly');
-                    const store = tx.objectStore('records');
+                    const tx = this.db.transaction([this.storeName], 'readonly');
+                    const store = tx.objectStore(this.storeName);
                     const request = store.getAll();
-
+                    request.onerror = () => reject(request.error);
                     request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject(request.error);
                 });
-            },
+            }
 
-            // Удалить все записи
-            async clearRecords() {
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction(['records'], 'readwrite');
-                    const store = tx.objectStore('records');
-                    const request = store.clear();
+            async exportToCSV() {
+                const records = await this.getAllRecords();
+                let csv = 'timestamp;barcode;well;block;rock_code\n';
+                for (const record of records) {
+                    csv += `${record.timestamp};${record.barcode};${record.well};${record.block};${record.rockCode}\n`;
+                }
+                return csv;
+            }
 
-                    request.onsuccess = () => resolve();
-                    request.onerror = () => reject(request.error);
-                });
-            },
+            async downloadCSV() {
+                const csv = await this.exportToCSV();
+                const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '');
+                const filename = `geology_export_${timestamp}.csv`;
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.setAttribute('href', URL.createObjectURL(blob));
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                console.log('[EXPORT] ✅ CSV скачан:', filename);
+                return filename;
+            }
+        }
 
-            // Показать toast
-            showToast(message, type = 'info') {
-                const toast = document.createElement('div');
-                toast.className = `toast ${type}`;
-                toast.textContent = message;
-                document.body.appendChild(toast);
+        class BarcodeScanner {
+            constructor() {
+                this.codeReader = null;
+                this.scanning = false;
+                this.lastScannedBarcode = '';
+                this.scanInterval = 100;
+                this.scanTimestamp = 0;
+                this.videoElement = null;
+                this.stream = null;
+            }
 
-                setTimeout(() => {
-                    toast.style.opacity = '0';
-                    setTimeout(() => toast.remove(), 300);
-                }, 3000);
-            },
-
-            // Инициализация камеры
-            async startCamera() {
+            async startScanning(videoElement, onDetected) {
                 try {
-                    this.stream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: 'environment' }
+                    console.log('[CAMERA] Инициализация камеры (10 FPS)...');
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: 'environment',
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        }
                     });
-                    const video = document.getElementById('video');
-                    video.srcObject = this.stream;
-                    console.log('[CAMERA] ✅ Камера запущена');
-                    this.showToast('✅ Камера включена', 'success');
+                    videoElement.srcObject = stream;
+                    this.videoElement = videoElement;
+                    this.stream = stream;
+                    this.scanning = true;
+                    this.codeReader = new ZXing.BrowserMultiFormatReader();
+                    console.log('[CAMERA] ✅ Камера инициализирована');
+                    this.scanFrames(videoElement, onDetected);
                 } catch (error) {
                     console.error('[CAMERA] ❌ Ошибка:', error);
-                    this.showToast('❌ Ошибка доступа к камере', 'error');
+                    throw error;
                 }
-            },
+            }
 
-            stopCamera() {
+            async scanFrames(videoElement, onDetected) {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const scan = async () => {
+                    if (!this.scanning) return;
+                    const now = Date.now();
+                    if (now - this.scanTimestamp < this.scanInterval) {
+                        requestAnimationFrame(scan);
+                        return;
+                    }
+                    this.scanTimestamp = now;
+                    try {
+                        const videoWidth = videoElement.videoWidth;
+                        const videoHeight = videoElement.videoHeight;
+                        canvas.width = videoWidth;
+                        canvas.height = videoHeight;
+                        if (canvas.width > 0 && canvas.height > 0) {
+                            ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                            try {
+                                const result = await this.codeReader.decodeFromCanvas(canvas);
+                                if (result && result.text) {
+                                    if (result.text !== this.lastScannedBarcode) {
+                                        this.lastScannedBarcode = result.text;
+                                        console.log('[BARCODE] ✅ Распознан:', result.text);
+                                        this.stopScanning();
+                                        if (onDetected) onDetected(result.text);
+                                        setTimeout(() => {
+                                            this.lastScannedBarcode = '';
+                                        }, 1000);
+                                    }
+                                }
+                            } catch (error) {}
+                        }
+                        requestAnimationFrame(scan);
+                    } catch (error) {
+                        console.error('[SCAN] Ошибка:', error);
+                        requestAnimationFrame(scan);
+                    }
+                };
+                scan();
+            }
+
+            stopScanning() {
+                if (!this.scanning) return;
+                this.scanning = false;
                 if (this.stream) {
                     this.stream.getTracks().forEach(track => track.stop());
                     this.stream = null;
-                    console.log('[CAMERA] Камера выключена');
-                    this.showToast('⏹️ Камера выключена', 'info');
                 }
-            },
+                if (this.videoElement) {
+                    this.videoElement.srcObject = null;
+                }
+                console.log('[CAMERA] ✅ Камера отключена');
+            }
 
-            // Инициализация
+            async restartScanning(videoElement, onDetected) {
+                this.stopScanning();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                await this.startScanning(videoElement, onDetected);
+            }
+        }
+
+        class FieldGeologyApp {
+            constructor() {
+                this.database = new GeologyDatabase();
+                this.scanner = new BarcodeScanner();
+                this.elements = {
+                    form: document.getElementById('data-form'),
+                    barcodeInput: document.getElementById('barcode-input'),
+                    wellInput: document.getElementById('well-input'),
+                    blockInput: document.getElementById('block-input'),
+                    rockSelect: document.getElementById('rock-select'),
+                    recordCount: document.getElementById('record-count'),
+                    errorMsg: document.getElementById('error-message'),
+                    successMsg: document.getElementById('success-message'),
+                    videoElement: document.getElementById('camera-video'),
+                    exportBtn: document.getElementById('export-btn'),
+                    shareBtn: document.getElementById('share-btn'),
+                    clearBtn: document.getElementById('clear-btn'),
+                    confirmDialog: document.getElementById('confirm-dialog'),
+                    cancelBtn: document.getElementById('cancel-btn'),
+                    confirmBtn: document.getElementById('confirm-btn')
+                };
+                this.init();
+            }
+
             async init() {
-                console.log('[APP] 🚀 Инициализация...');
-                
-                await this.initDB();
-                this.updateBlockId();
-                this.attachEventListeners();
-                this.refreshRecordsList();
-
-                // Service Worker
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.register('/service-worker.js')
-                        .then(() => console.log('[PWA] ✅ Service Worker зарегистрирован'))
-                        .catch(err => console.log('[PWA] ⚠️ SW error:', err.message));
+                try {
+                    await this.database.init();
+                    this.loadBlockFromStorage();
+                    await this.updateRecordCount();
+                    await this.scanner.startScanning(
+                        this.elements.videoElement,
+                        (barcode) => this.handleBarcodeDetected(barcode)
+                    );
+                    this.attachEventListeners();
+                    this.registerServiceWorker();
+                    console.log('[APP] ✅ Приложение готово!');
+                } catch (error) {
+                    console.error('[APP] Ошибка инициализации:', error);
+                    this.showError('Ошибка инициализации: ' + error.message);
                 }
-
-                console.log('[APP] ✅ Готово к работе');
-            },
+            }
 
             attachEventListeners() {
-                document.getElementById('startCamera').addEventListener('click', () => this.startCamera());
-                document.getElementById('stopCamera').addEventListener('click', () => this.stopCamera());
-                document.getElementById('saveRecord').addEventListener('click', () => this.handleSaveRecord());
-                document.getElementById('clearForm').addEventListener('click', () => this.handleClearForm());
-                document.getElementById('changeBlock').addEventListener('click', () => this.handleChangeBlock());
-                document.getElementById('exportCSV').addEventListener('click', () => this.handleExportCSV());
-                document.getElementById('shareData').addEventListener('click', () => this.handleShareData());
-                document.getElementById('clearAll').addEventListener('click', () => this.handleClearAll());
-            },
-
-            updateBlockId() {
-                document.getElementById('blockId').textContent = this.currentBlockId;
-            },
-
-            handleChangeBlock() {
-                const newId = prompt('Введите новый ID блока:', this.currentBlockId);
-                if (newId && newId.trim()) {
-                    this.currentBlockId = newId.trim();
-                    localStorage.setItem('blockId', this.currentBlockId);
-                    this.updateBlockId();
-                    this.showToast(`✅ ID блока изменен на ${newId}`, 'success');
-                }
-            },
-
-            async handleSaveRecord() {
-                const depth = document.getElementById('depth').value;
-                const coordinates = document.getElementById('coordinates').value;
-                const description = document.getElementById('description').value;
-                const rockType = document.getElementById('rockType').value;
-                const qrText = document.getElementById('qrText').textContent;
-
-                if (!depth || !coordinates) {
-                    this.showToast('❌ Заполните глубину и координаты', 'error');
-                    return;
-                }
-
-                const record = {
-                    depth: parseFloat(depth),
-                    coordinates,
-                    description,
-                    rockType,
-                    qrCode: qrText || 'нет'
-                };
-
-                await this.saveRecord(record);
-                this.showToast('✅ Запись сохранена', 'success');
-                this.handleClearForm();
-                this.refreshRecordsList();
-            },
-
-            handleClearForm() {
-                document.getElementById('depth').value = '';
-                document.getElementById('coordinates').value = '';
-                document.getElementById('description').value = '';
-                document.getElementById('rockType').value = '';
-                document.getElementById('qrResult').classList.remove('show');
-                document.getElementById('qrText').textContent = '';
-            },
-
-            async refreshRecordsList() {
-                const records = await this.getRecords();
-                const list = document.getElementById('recordsList');
-                const count = document.getElementById('recordCount');
-
-                count.textContent = records.length;
-
-                if (records.length === 0) {
-                    list.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Нет сохраненных записей</p>';
-                    return;
-                }
-
-                list.innerHTML = records.map((r, i) => `
-                    <div class="record-item">
-                        <h4>Запись #${i + 1}</h4>
-                        <p><strong>Глубина:</strong> ${r.depth} м</p>
-                        <p><strong>Координаты:</strong> ${r.coordinates}</p>
-                        <p><strong>Тип:</strong> ${r.rockType || 'не указан'}</p>
-                        <p><strong>QR код:</strong> ${r.qrCode}</p>
-                        <p><strong>Время:</strong> ${new Date(r.timestamp).toLocaleString('ru-RU')}</p>
-                        ${r.description ? `<p><strong>Описание:</strong> ${r.description}</p>` : ''}
-                    </div>
-                `).join('');
-            },
-
-            async handleExportCSV() {
-                const records = await this.getRecords();
-                if (records.length === 0) {
-                    this.showToast('❌ Нет записей для экспорта', 'error');
-                    return;
-                }
-
-                const csv = [
-                    ['Блок', 'Глубина', 'Координаты', 'Тип', 'QR', 'Описание', 'Время'].join(','),
-                    ...records.map(r => [
-                        this.currentBlockId,
-                        r.depth,
-                        r.coordinates,
-                        r.rockType || '-',
-                        r.qrCode || '-',
-                        `"${(r.description || '').replace(/"/g, '""')}"`,
-                        new Date(r.timestamp).toLocaleString('ru-RU')
-                    ].join(','))
-                ].join('\n');
-
-                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `geology_${new Date().toISOString().split('T')[0]}.csv`;
-                link.click();
-
-                this.showToast('✅ CSV скачан', 'success');
-            },
-
-            async handleShareData() {
-                const records = await this.getRecords();
-                if (records.length === 0) {
-                    this.showToast('❌ Нет данных для отправки', 'error');
-                    return;
-                }
-
-                const text = `Геологические данные\nБлок: ${this.currentBlockId}\nЗаписей: ${records.length}`;
-                
-                if (navigator.share) {
-                    navigator.share({ title: 'Geology Data', text });
-                } else {
-                    this.showToast('❌ Функция отправки не поддерживается', 'error');
-                }
-            },
-
-            async handleClearAll() {
-                if (!confirm('Удалить все записи? Это действие нельзя отменить!')) return;
-                
-                await this.clearRecords();
-                this.showToast('🗑️ Все записи удалены', 'info');
-                this.refreshRecordsList();
+                this.elements.form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveRecord();
+                });
+                this.elements.exportBtn.addEventListener('click', () => this.exportToCSV());
+                this.elements.shareBtn.addEventListener('click', () => this.shareCSV());
+                this.elements.clearBtn.addEventListener('click', () => this.showClearConfirmDialog());
+                this.elements.confirmDialog.addEventListener('click', (e) => {
+                    if (e.target === this.elements.confirmDialog) this.hideClearConfirmDialog();
+                });
+                this.elements.cancelBtn.addEventListener('click', () => this.hideClearConfirmDialog());
+                this.elements.confirmBtn.addEventListener('click', () => this.confirmClear());
+                this.elements.blockInput.addEventListener('change', () => this.saveBlockToStorage());
+                this.setupKeyboardNavigation();
             }
-        };
 
-        // Запуск приложения
-        document.addEventListener('DOMContentLoaded', () => App.init());
+            setupKeyboardNavigation() {
+                this.elements.wellInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.elements.blockInput.focus();
+                    }
+                });
+                this.elements.blockInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.elements.rockSelect.focus();
+                    }
+                });
+                this.elements.rockSelect.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.elements.form.querySelector('.btn-primary').click();
+                    }
+                });
+            }
+
+            loadBlockFromStorage() {
+                const savedBlock = localStorage.getItem('lastBlock');
+                if (savedBlock) {
+                    this.elements.blockInput.value = savedBlock;
+                }
+            }
+
+            saveBlockToStorage() {
+                localStorage.setItem('lastBlock', this.elements.blockInput.value);
+            }
+
+            handleBarcodeDetected(barcode) {
+                this.elements.barcodeInput.value = barcode;
+                setTimeout(() => this.elements.wellInput.focus(), 100);
+            }
+
+            showClearConfirmDialog() {
+                this.elements.confirmDialog.style.display = 'flex';
+            }
+
+            hideClearConfirmDialog() {
+                this.elements.confirmDialog.style.display = 'none';
+            }
+
+            async confirmClear() {
+                this.clearForm();
+                this.hideClearConfirmDialog();
+                this.hideMessages();
+                try {
+                    await this.scanner.restartScanning(
+                        this.elements.videoElement,
+                        (barcode) => this.handleBarcodeDetected(barcode)
+                    );
+                } catch (error) {
+                    console.warn('[APP] Ошибка перезагрузки камеры:', error);
+                }
+            }
+
+            clearForm() {
+                this.elements.barcodeInput.value = '';
+                this.elements.wellInput.value = '';
+                this.elements.rockSelect.value = '520';
+            }
+
+            hideMessages() {
+                this.elements.errorMsg.style.display = 'none';
+                this.elements.successMsg.style.display = 'none';
+            }
+
+            async saveRecord() {
+                this.hideMessages();
+                const barcode = this.elements.barcodeInput.value.trim();
+                const well = this.elements.wellInput.value.trim();
+                const block = this.elements.blockInput.value.trim();
+                const rock = this.elements.rockSelect.value;
+
+                if (!barcode) {
+                    this.showError('Пожалуйста, отсканируйте штрихкод');
+                    return;
+                }
+                if (!well) {
+                    this.showError('Пожалуйста, введите номер скважины');
+                    return;
+                }
+                if (!block) {
+                    this.showError('Пожалуйста, введите номер блока');
+                    return;
+                }
+
+                if (isNaN(parseInt(well)) || parseInt(well) < 1 || parseInt(well) > 999999) {
+                    this.showError('Скважина должна быть от 1 до 999999');
+                    return;
+                }
+                if (isNaN(parseInt(block)) || parseInt(block) < 1 || parseInt(block) > 999999) {
+                    this.showError('Блок должен быть от 1 до 999999');
+                    return;
+                }
+
+                try {
+                    await this.database.addRecord(barcode, well, block, rock);
+                    this.showSuccess(`✅ Запись сохранена!\nШтрихкод: ${barcode}\nСкважина: ${well}\nБлок: ${block}\nПорода: ${rock}`);
+                    this.clearForm();
+                    await this.updateRecordCount();
+                    try {
+                        await this.scanner.restartScanning(
+                            this.elements.videoElement,
+                            (barcode) => this.handleBarcodeDetected(barcode)
+                        );
+                    } catch (error) {
+                        console.warn('[APP] Ошибка перезагрузки камеры:', error);
+                    }
+                    setTimeout(() => this.elements.wellInput.focus(), 100);
+                } catch (error) {
+                    this.showError('Ошибка сохранения: ' + error.message);
+                }
+            }
+
+            async updateRecordCount() {
+                try {
+                    const records = await this.database.getAllRecords();
+                    this.elements.recordCount.textContent = records.length;
+                } catch (error) {
+                    console.error('[APP] Ошибка обновления счетчика:', error);
+                }
+            }
+
+            async exportToCSV() {
+                try {
+                    await this.database.downloadCSV();
+                    this.showSuccess('✅ CSV файл экспортирован!');
+                } catch (error) {
+                    this.showError('Ошибка экспорта: ' + error.message);
+                }
+            }
+
+            async shareCSV() {
+                try {
+                    const csv = await this.database.exportToCSV();
+                    const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '');
+                    const filename = `geology_export_${timestamp}.csv`;
+
+                    if (navigator.share) {
+                        const blob = new Blob([csv], { type: 'text/csv' });
+                        const file = new File([blob], filename, { type: 'text/csv' });
+                        await navigator.share({
+                            title: 'Геологические данные',
+                            text: 'Экспорт записей',
+                            files: [file]
+                        });
+                        this.showSuccess('✅ Данные поделены!');
+                    } else {
+                        await this.database.downloadCSV();
+                        this.showSuccess('✅ CSV скачан (Share API недоступна)');
+                    }
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        this.showError('Ошибка шеринга: ' + error.message);
+                    }
+                }
+            }
+
+            showError(message) {
+                this.elements.errorMsg.textContent = message;
+                this.elements.errorMsg.style.display = 'block';
+            }
+
+            showSuccess(message) {
+                this.elements.successMsg.textContent = message;
+                this.elements.successMsg.style.display = 'block';
+                setTimeout(() => {
+                    this.elements.successMsg.style.display = 'none';
+                }, 4000);
+            }
+
+            async registerServiceWorker() {
+                if ('serviceWorker' in navigator) {
+                    try {
+                        const registration = await navigator.serviceWorker.register('service-worker.js');
+                        console.log('[PWA] Service Worker зарегистрирован');
+                    } catch (error) {
+                        console.error('[PWA] Ошибка регистрации Service Worker:', error);
+                    }
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[MAIN] Страница загружена');
+            window.app = new FieldGeologyApp();
+        });
     </script>
 </body>
 </html>
