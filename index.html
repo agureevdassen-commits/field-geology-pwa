@@ -1,46 +1,643 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="PWA для сбора геологических данных с барко-кодированием">
-  <meta name="theme-color" content="#2C3E50">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Geology App">
-  
-  <link rel="manifest" href="/manifest.json">
-  <link rel="icon" href="/favicon.ico">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  
-  <title>Field Geology Data Collector v2.0</title>
-  
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    html, body {
-      width: 100%;
-      height: 100%;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-      background: #f5f5f5;
-      overflow: hidden;
-    }
-    
-    #root {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="description" content="PWA для сбора геологических данных">
+    <title>Field Geology PWA</title>
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .camera-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        #video {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background: #000;
+            display: block;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #e8e8e8;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d8d8d8;
+        }
+
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ee5a52;
+        }
+
+        .btn-success {
+            background: #51cf66;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #40c057;
+        }
+
+        .form-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .qr-result {
+            background: #f0f9ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .qr-result.show {
+            display: block;
+        }
+
+        .qr-result h3 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .qr-result p {
+            color: #333;
+            margin: 5px 0;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .records-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .records-section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .record-item {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .record-item h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .record-item p {
+            color: #666;
+            font-size: 13px;
+            margin: 3px 0;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+            max-width: 300px;
+        }
+
+        .toast.success {
+            background: #51cf66;
+        }
+
+        .toast.error {
+            background: #ff6b6b;
+        }
+
+        .toast.info {
+            background: #667eea;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .block-info {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 20px;
+            }
+
+            button {
+                min-width: 100px;
+                padding: 10px 15px;
+                font-size: 13px;
+            }
+
+            .button-group {
+                gap: 8px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
+    <div class="container">
+        <header>
+            <h1>🌍 Field Geology PWA</h1>
+            <p>Сбор геологических данных с QR кодами</p>
+        </header>
+
+        <!-- Камера -->
+        <div class="camera-section">
+            <h2 style="margin-bottom: 15px;">📷 Камера</h2>
+            <video id="video" autoplay playsinline></video>
+            
+            <div class="button-group">
+                <button class="btn-primary" id="startCamera">🎥 Включить камеру</button>
+                <button class="btn-danger" id="stopCamera">⏹️ Выключить</button>
+                <button class="btn-secondary" id="capturePhoto">📸 Снимок</button>
+            </div>
+
+            <div id="qrResult" class="qr-result">
+                <h3>✅ QR код распознан!</h3>
+                <p><strong>Код:</strong> <span id="qrText"></span></p>
+            </div>
+        </div>
+
+        <!-- Форма ввода -->
+        <div class="form-section">
+            <h2 style="margin-bottom: 15px;">📝 Данные</h2>
+            
+            <div class="block-info">
+                ID Блока: <strong id="blockId">-</strong>
+                <button class="btn-secondary" id="changeBlock" style="width: auto; margin-left: 10px; padding: 5px 10px; font-size: 12px;">Изменить</button>
+            </div>
+
+            <div class="form-group">
+                <label>Глубина (м)</label>
+                <input type="number" id="depth" placeholder="0.0" step="0.1">
+            </div>
+
+            <div class="form-group">
+                <label>Координаты (широта, долгота)</label>
+                <input type="text" id="coordinates" placeholder="55.7558, 37.6173">
+            </div>
+
+            <div class="form-group">
+                <label>Описание</label>
+                <textarea id="description" placeholder="Опишите найденный образец..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Тип пород</label>
+                <select id="rockType">
+                    <option value="">-- Выберите тип --</option>
+                    <option value="igneous">Магматические</option>
+                    <option value="sedimentary">Осадочные</option>
+                    <option value="metamorphic">Метаморфные</option>
+                    <option value="other">Другое</option>
+                </select>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-success" id="saveRecord">✅ Сохранить запись</button>
+                <button class="btn-secondary" id="clearForm">🗑️ Очистить</button>
+            </div>
+        </div>
+
+        <!-- Сохраненные записи -->
+        <div class="records-section">
+            <h2>📊 Сохраненные записи (<span id="recordCount">0</span>)</h2>
+            <div id="recordsList"></div>
+            
+            <div class="button-group" style="margin-top: 15px;">
+                <button class="btn-primary" id="exportCSV">💾 Скачать CSV</button>
+                <button class="btn-secondary" id="shareData">📤 Поделиться</button>
+                <button class="btn-danger" id="clearAll">🗑️ Очистить все</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ ИНИЦИАЛИЗАЦИЯ ============
+        const App = {
+            db: null,
+            camera: null,
+            currentBlockId: localStorage.getItem('blockId') || '123123',
+            stream: null,
+
+            // Инициализация IndexedDB
+            async initDB() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open('GeologyDB', 1);
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => {
+                        this.db = request.result;
+                        console.log('[DB] ✅ БД инициализирована');
+                        resolve();
+                    };
+                    
+                    request.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains('records')) {
+                            db.createObjectStore('records', { keyPath: 'id', autoIncrement: true });
+                        }
+                    };
+                });
+            },
+
+            // Сохранить запись
+            async saveRecord(record) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction(['records'], 'readwrite');
+                    const store = tx.objectStore('records');
+                    const request = store.add({
+                        ...record,
+                        timestamp: new Date().toISOString(),
+                        blockId: this.currentBlockId
+                    });
+
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            },
+
+            // Получить все записи
+            async getRecords() {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction(['records'], 'readonly');
+                    const store = tx.objectStore('records');
+                    const request = store.getAll();
+
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            },
+
+            // Удалить все записи
+            async clearRecords() {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction(['records'], 'readwrite');
+                    const store = tx.objectStore('records');
+                    const request = store.clear();
+
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            },
+
+            // Показать toast
+            showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            },
+
+            // Инициализация камеры
+            async startCamera() {
+                try {
+                    this.stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: 'environment' }
+                    });
+                    const video = document.getElementById('video');
+                    video.srcObject = this.stream;
+                    console.log('[CAMERA] ✅ Камера запущена');
+                    this.showToast('✅ Камера включена', 'success');
+                } catch (error) {
+                    console.error('[CAMERA] ❌ Ошибка:', error);
+                    this.showToast('❌ Ошибка доступа к камере', 'error');
+                }
+            },
+
+            stopCamera() {
+                if (this.stream) {
+                    this.stream.getTracks().forEach(track => track.stop());
+                    this.stream = null;
+                    console.log('[CAMERA] Камера выключена');
+                    this.showToast('⏹️ Камера выключена', 'info');
+                }
+            },
+
+            // Инициализация
+            async init() {
+                console.log('[APP] 🚀 Инициализация...');
+                
+                await this.initDB();
+                this.updateBlockId();
+                this.attachEventListeners();
+                this.refreshRecordsList();
+
+                // Service Worker
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('/service-worker.js')
+                        .then(() => console.log('[PWA] ✅ Service Worker зарегистрирован'))
+                        .catch(err => console.log('[PWA] ⚠️ SW error:', err.message));
+                }
+
+                console.log('[APP] ✅ Готово к работе');
+            },
+
+            attachEventListeners() {
+                document.getElementById('startCamera').addEventListener('click', () => this.startCamera());
+                document.getElementById('stopCamera').addEventListener('click', () => this.stopCamera());
+                document.getElementById('saveRecord').addEventListener('click', () => this.handleSaveRecord());
+                document.getElementById('clearForm').addEventListener('click', () => this.handleClearForm());
+                document.getElementById('changeBlock').addEventListener('click', () => this.handleChangeBlock());
+                document.getElementById('exportCSV').addEventListener('click', () => this.handleExportCSV());
+                document.getElementById('shareData').addEventListener('click', () => this.handleShareData());
+                document.getElementById('clearAll').addEventListener('click', () => this.handleClearAll());
+            },
+
+            updateBlockId() {
+                document.getElementById('blockId').textContent = this.currentBlockId;
+            },
+
+            handleChangeBlock() {
+                const newId = prompt('Введите новый ID блока:', this.currentBlockId);
+                if (newId && newId.trim()) {
+                    this.currentBlockId = newId.trim();
+                    localStorage.setItem('blockId', this.currentBlockId);
+                    this.updateBlockId();
+                    this.showToast(`✅ ID блока изменен на ${newId}`, 'success');
+                }
+            },
+
+            async handleSaveRecord() {
+                const depth = document.getElementById('depth').value;
+                const coordinates = document.getElementById('coordinates').value;
+                const description = document.getElementById('description').value;
+                const rockType = document.getElementById('rockType').value;
+                const qrText = document.getElementById('qrText').textContent;
+
+                if (!depth || !coordinates) {
+                    this.showToast('❌ Заполните глубину и координаты', 'error');
+                    return;
+                }
+
+                const record = {
+                    depth: parseFloat(depth),
+                    coordinates,
+                    description,
+                    rockType,
+                    qrCode: qrText || 'нет'
+                };
+
+                await this.saveRecord(record);
+                this.showToast('✅ Запись сохранена', 'success');
+                this.handleClearForm();
+                this.refreshRecordsList();
+            },
+
+            handleClearForm() {
+                document.getElementById('depth').value = '';
+                document.getElementById('coordinates').value = '';
+                document.getElementById('description').value = '';
+                document.getElementById('rockType').value = '';
+                document.getElementById('qrResult').classList.remove('show');
+                document.getElementById('qrText').textContent = '';
+            },
+
+            async refreshRecordsList() {
+                const records = await this.getRecords();
+                const list = document.getElementById('recordsList');
+                const count = document.getElementById('recordCount');
+
+                count.textContent = records.length;
+
+                if (records.length === 0) {
+                    list.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Нет сохраненных записей</p>';
+                    return;
+                }
+
+                list.innerHTML = records.map((r, i) => `
+                    <div class="record-item">
+                        <h4>Запись #${i + 1}</h4>
+                        <p><strong>Глубина:</strong> ${r.depth} м</p>
+                        <p><strong>Координаты:</strong> ${r.coordinates}</p>
+                        <p><strong>Тип:</strong> ${r.rockType || 'не указан'}</p>
+                        <p><strong>QR код:</strong> ${r.qrCode}</p>
+                        <p><strong>Время:</strong> ${new Date(r.timestamp).toLocaleString('ru-RU')}</p>
+                        ${r.description ? `<p><strong>Описание:</strong> ${r.description}</p>` : ''}
+                    </div>
+                `).join('');
+            },
+
+            async handleExportCSV() {
+                const records = await this.getRecords();
+                if (records.length === 0) {
+                    this.showToast('❌ Нет записей для экспорта', 'error');
+                    return;
+                }
+
+                const csv = [
+                    ['Блок', 'Глубина', 'Координаты', 'Тип', 'QR', 'Описание', 'Время'].join(','),
+                    ...records.map(r => [
+                        this.currentBlockId,
+                        r.depth,
+                        r.coordinates,
+                        r.rockType || '-',
+                        r.qrCode || '-',
+                        `"${(r.description || '').replace(/"/g, '""')}"`,
+                        new Date(r.timestamp).toLocaleString('ru-RU')
+                    ].join(','))
+                ].join('\n');
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `geology_${new Date().toISOString().split('T')[0]}.csv`;
+                link.click();
+
+                this.showToast('✅ CSV скачан', 'success');
+            },
+
+            async handleShareData() {
+                const records = await this.getRecords();
+                if (records.length === 0) {
+                    this.showToast('❌ Нет данных для отправки', 'error');
+                    return;
+                }
+
+                const text = `Геологические данные\nБлок: ${this.currentBlockId}\nЗаписей: ${records.length}`;
+                
+                if (navigator.share) {
+                    navigator.share({ title: 'Geology Data', text });
+                } else {
+                    this.showToast('❌ Функция отправки не поддерживается', 'error');
+                }
+            },
+
+            async handleClearAll() {
+                if (!confirm('Удалить все записи? Это действие нельзя отменить!')) return;
+                
+                await this.clearRecords();
+                this.showToast('🗑️ Все записи удалены', 'info');
+                this.refreshRecordsList();
+            }
+        };
+
+        // Запуск приложения
+        document.addEventListener('DOMContentLoaded', () => App.init());
+    </script>
 </body>
 </html>
